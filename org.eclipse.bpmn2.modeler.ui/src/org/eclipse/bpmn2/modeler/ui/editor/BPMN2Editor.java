@@ -315,7 +315,7 @@ public class BPMN2Editor extends DiagramEditor implements IPreferenceChangeListe
 	}
 
 	public static final String EDITOR_ID = "org.eclipse.bpmn2.modeler.ui.bpmn2editor"; //$NON-NLS-1$
-	public static final String CONTRIBUTOR_ID = "org.eclipse.bpmn2.modeler.ui.PropertyContributor"; //$NON-NLS-1$
+	public static final String CONTRIBUTOR_ID = "org.foxbpm.bpmn.designer.ui.propertyContributor"; //$NON-NLS-1$
 
 	private ModelHandler modelHandler;
 	private URI modelUri;

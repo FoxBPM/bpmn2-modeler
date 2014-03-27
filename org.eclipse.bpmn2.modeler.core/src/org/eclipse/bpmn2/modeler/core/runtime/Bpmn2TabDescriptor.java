@@ -31,6 +31,7 @@ public class Bpmn2TabDescriptor extends AbstractTabDescriptor {
 	protected boolean indented = false;
 	protected Image image = null;
 	protected boolean popup = true;
+	protected String order;
 
 	public Bpmn2TabDescriptor(IConfigurationElement e) {
 		id = e.getAttribute("id"); //$NON-NLS-1$
@@ -45,6 +46,7 @@ public class Bpmn2TabDescriptor extends AbstractTabDescriptor {
 		s = e.getAttribute("popup"); //$NON-NLS-1$
 		if (s!=null && s.trim().equalsIgnoreCase("false")) //$NON-NLS-1$
 			popup = false;
+		order = e.getAttribute("order")==null||e.getAttribute("order").equals("")?"0":e.getAttribute("order");
 	}
 	
 	public Bpmn2TabDescriptor(String id, String category, String label) {
@@ -123,6 +125,7 @@ public class Bpmn2TabDescriptor extends AbstractTabDescriptor {
 		if (image!=null)
 			td.image = new Image(Display.getDefault(), this.image, SWT.IMAGE_COPY);
 		td.indented = this.indented;
+		td.order = this.order;
 //		for (Bpmn2SectionDescriptor sd : (List<Bpmn2SectionDescriptor>)getSectionDescriptors()) {
 //			clone.getSectionDescriptors().add( new Bpmn2SectionDescriptor(sd) );
 //		}
@@ -139,6 +142,7 @@ public class Bpmn2TabDescriptor extends AbstractTabDescriptor {
 		td.indented = this.indented;
 		td.popup = this.popup;
 		td.image = this.image;
+		td.order = this.order;
 		for (Bpmn2SectionDescriptor sd : (List<Bpmn2SectionDescriptor>)getSectionDescriptors()) {
 			td.getSectionDescriptors().add(new Bpmn2SectionDescriptor(td, sd));
 		}
@@ -162,5 +166,9 @@ public class Bpmn2TabDescriptor extends AbstractTabDescriptor {
 			}
 		}
 		return false;
+	}
+
+	public String getOrder() {
+		return order;
 	}
 }

@@ -868,7 +868,7 @@ public class ToolProfilesPreferencePage extends PreferencePage implements IWorkb
 			preferences.setShowIdAttribute(btnShowIds.getSelection());
 			if (btnUseAsDefaultProfile.getSelection())
 				preferences.setDefaultToolProfile(currentRuntime, currentDiagramType, currentProfile);
-
+			preferences.setRuntime(currentRuntime);
 			preferences.flush();
 		} catch (BackingStoreException e) {
 			Activator.showErrorWithLogging(e);
