@@ -775,7 +775,8 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			ICustomFeature iCustomFeature = cf[i];
 			if (iCustomFeature instanceof ShowPropertiesFeature &&
 					iCustomFeature.canExecute(context)) {
-				return iCustomFeature;
+				//屏蔽双击 --wy 20140423
+//				return iCustomFeature;
 			}
 		}
 		// temp debugging stuff to dump connection routing info
