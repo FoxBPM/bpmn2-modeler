@@ -1056,7 +1056,7 @@ public class BPMN2Editor extends DiagramEditor implements IPreferenceChangeListe
 		}
 //		System.out.println("done in "+(System.currentTimeMillis()-start)+" ms");
 		Resource resource = getResourceSet().getResource(modelUri, false);
-		BPMN2ProjectValidator.validateOnSave(resource, monitor);
+//		BPMN2ProjectValidator.validateOnSave(resource, monitor);
 	}
 
 	@Override
