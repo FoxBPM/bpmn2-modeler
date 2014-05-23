@@ -102,11 +102,11 @@ import org.eclipse.bpmn2.modeler.core.utils.GraphicsUtil;
 import org.eclipse.bpmn2.modeler.core.utils.ModelUtil;
 import org.eclipse.bpmn2.modeler.core.utils.ModelUtil.Bpmn2DiagramType;
 import org.eclipse.bpmn2.modeler.core.utils.StyleUtil;
-import org.eclipse.bpmn2.modeler.core.validation.BPMN2ProjectValidator;
 import org.eclipse.bpmn2.modeler.core.validation.BPMN2ValidationStatusLoader;
 import org.eclipse.bpmn2.modeler.help.IHelpContexts;
 import org.eclipse.bpmn2.modeler.ui.Activator;
 import org.eclipse.bpmn2.modeler.ui.Bpmn2DiagramEditorInput;
+import org.eclipse.bpmn2.modeler.ui.diagram.BPMNFeatureProvider;
 import org.eclipse.bpmn2.modeler.ui.diagram.BPMNToolBehaviorProvider;
 import org.eclipse.bpmn2.modeler.ui.property.PropertyTabDescriptorProvider;
 import org.eclipse.bpmn2.modeler.ui.property.artifact.CategoryDetailComposite;
@@ -187,7 +187,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.transaction.NotificationFilter;
 import org.eclipse.emf.transaction.RecordingCommand;
-import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.TransactionalEditingDomain.Lifecycle;
 import org.eclipse.emf.transaction.impl.TransactionalEditingDomainImpl;
 import org.eclipse.gef.EditPart;
@@ -197,7 +196,10 @@ import org.eclipse.gef.MouseWheelZoomHandler;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 import org.eclipse.gef.ui.parts.SelectionSynchronizer;
 import org.eclipse.graphiti.features.IFeatureProvider;
+import org.eclipse.graphiti.features.ISaveImageFeature;
 import org.eclipse.graphiti.features.IUpdateFeature;
+import org.eclipse.graphiti.features.context.ISaveImageContext;
+import org.eclipse.graphiti.features.context.impl.SaveImageContext;
 import org.eclipse.graphiti.features.context.impl.UpdateContext;
 import org.eclipse.graphiti.mm.algorithms.GraphicsAlgorithm;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
@@ -1057,6 +1059,13 @@ public class BPMN2Editor extends DiagramEditor implements IPreferenceChangeListe
 //		System.out.println("done in "+(System.currentTimeMillis()-start)+" ms");
 		Resource resource = getResourceSet().getResource(modelUri, false);
 //		BPMN2ProjectValidator.validateOnSave(resource, monitor);
+		
+		
+		//导出图片
+		BPMN2EditorDiagramBehavior bpmn2EditorDiagramBehavior = (BPMN2EditorDiagramBehavior) this.getDiagramBehavior();
+		ISaveImageContext context = new SaveImageContext();
+		ISaveImageFeature feature = ((BPMNFeatureProvider)bpmn2EditorDiagramBehavior.getDiagramTypeProvider().getFeatureProvider()).getFixFlowSaveImageFeature();
+		
 	}
 
 	@Override

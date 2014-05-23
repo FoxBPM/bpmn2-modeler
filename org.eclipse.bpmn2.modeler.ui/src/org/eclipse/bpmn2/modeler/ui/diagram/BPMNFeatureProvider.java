@@ -163,6 +163,7 @@ import org.eclipse.graphiti.features.IReconnectionFeature;
 import org.eclipse.graphiti.features.IRemoveBendpointFeature;
 import org.eclipse.graphiti.features.IRemoveFeature;
 import org.eclipse.graphiti.features.IResizeShapeFeature;
+import org.eclipse.graphiti.features.ISaveImageFeature;
 import org.eclipse.graphiti.features.IUpdateFeature;
 import org.eclipse.graphiti.features.context.IAddBendpointContext;
 import org.eclipse.graphiti.features.context.IAddContext;
@@ -679,5 +680,9 @@ public class BPMNFeatureProvider extends DefaultFeatureProvider {
 		if (defaultPasteFeature.canPaste(context))
 			return defaultPasteFeature;
 		return null;
+	}
+	
+	public ISaveImageFeature getFixFlowSaveImageFeature() {
+        return new FoxBPMSaveImageFeature(this);
 	}
 }
