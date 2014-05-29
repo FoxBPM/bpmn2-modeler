@@ -72,7 +72,10 @@ Export-Package: org.eclipse.bpmn2.modeler.ui,
  org.eclipse.bpmn2.modeler.ui.views,
  org.eclipse.bpmn2.modeler.ui.views.outline,
  org.eclipse.bpmn2.modeler.ui.wizards
-Import-Package: org.eclipse.core.expressions,
+Import-Package: com.wisedu.emap.studio.model.project,
+ org.eclipse.core.expressions,
+ org.eclipse.emf.query.conditions.eobjects,
+ org.eclipse.emf.query.statements,
  org.eclipse.emf.workspace,
  org.eclipse.emf.workspace.util,
  org.eclipse.wst.validation

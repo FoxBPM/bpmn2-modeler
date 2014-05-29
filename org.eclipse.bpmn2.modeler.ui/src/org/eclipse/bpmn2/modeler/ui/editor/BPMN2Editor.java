@@ -171,6 +171,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -193,7 +194,13 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EValidator;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.query.conditions.eobjects.EObjectCondition;
+import org.eclipse.emf.query.statements.FROM;
+import org.eclipse.emf.query.statements.IQueryResult;
+import org.eclipse.emf.query.statements.SELECT;
+import org.eclipse.emf.query.statements.WHERE;
 import org.eclipse.emf.transaction.NotificationFilter;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain.Lifecycle;
@@ -248,6 +255,8 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabDescriptorProvider;
 import org.eclipse.wst.sse.ui.StructuredTextEditor;
+
+import com.wisedu.emap.studio.model.project.Project;
 
 /**
  * 
@@ -1196,7 +1205,7 @@ public class BPMN2Editor extends DiagramEditor implements IPreferenceChangeListe
 	// WorkspaceSynchronizer handlers called from delegate
 	// //////////////////////////////////////////////////////////////////////////////
 
-	public boolean handleResourceChanged(Resource resource) {
+	public boolean handleResourceChanged(final Resource resource) {
 		if (resource == bpmnResource) {
 			URI newURI = resource.getURI();
 			if (!modelUri.equals(newURI)) {
@@ -1220,11 +1229,82 @@ public class BPMN2Editor extends DiagramEditor implements IPreferenceChangeListe
 			public void run() {
 				updateDirtyState();
 				refreshTitle();
+				//更新左树节点的属性
+				updateTreeNodeState(resource.getURI().devicePath());
 			}
 		});
 		return true;
 	}
+	
+	private void updateTreeNodeState(String bpmnUri){
+		String[] uris=bpmnUri.split("/");
+		String projectName=uris[2];
+		String processId=getEditorInput().getName();
+		Project project=loadProject(projectName);
+		com.wisedu.emap.studio.model.project.BaseElement bpmnElement=findByGuid(project, processId);
+		if (bpmnElement.getIdeStatus().equals("NotModify")) {
+			bpmnElement.setIdeStatus("Update");
+			saveAndRefresh(project);
+		}
+	}
+	
+	/**
+	 * 保存EMF文件并刷新
+	 * 
+	 * @param object
+	 */
+	private void saveAndRefresh(EObject object) {
+		try {
+			object.eResource().save(null);
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			IPath location = Path.fromOSString(object.eResource().getURI().devicePath());
+			IFile file = workspace.getRoot().getFileForLocation(location);
+			try {
+				file.refreshLocal(IResource.FILE, null);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public Project loadProject(String projectName) {
+		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		for (IProject iProject : workspaceRoot.getProjects()) {
+			if (iProject.getName().equalsIgnoreCase(projectName)) {
+				IResource projectFileResource = iProject.findMember("modifiedRepositories/project.xml", true);
+				if (projectFileResource != null && projectFileResource.exists()) {
+					ResourceSet resourceSet = new ResourceSetImpl();
+					resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xml", new XMIResourceFactoryImpl());
+					Resource resource = resourceSet.getResource(URI.createFileURI(projectFileResource.getLocation().toOSString()), true);
+					return (Project) resource.getContents().get(0);
+				}
+			}
+		}
+		return null;
+	}
+	
+	private com.wisedu.emap.studio.model.project.BaseElement findByGuid(Project project, final String guid) {
+		SELECT select = new SELECT(new FROM(project), new WHERE(new EObjectCondition() {
+			@Override
+			public boolean isSatisfied(EObject eObject) {
+				if (eObject instanceof com.wisedu.emap.studio.model.project.BaseElement) {
+					com.wisedu.emap.studio.model.project.BaseElement o = (com.wisedu.emap.studio.model.project.BaseElement) eObject;
+					if (o.getGuid() != null && o.getGuid().equals(guid)) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}));
+		IQueryResult ir = select.execute();
+		if (!ir.isEmpty()) {
+			return (com.wisedu.emap.studio.model.project.BaseElement) ir.iterator().next();
+		}
+		return null;
+	}
+	
 	public boolean handleResourceDeleted(Resource resource) {
 		closeEditor();
 		return true;
