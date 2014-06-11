@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import org.eclipse.bpmn2.Activity;
 import org.eclipse.bpmn2.AdHocSubProcess;
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.Bpmn2Package;
 import org.eclipse.bpmn2.CallActivity;
 import org.eclipse.bpmn2.CallChoreography;
 import org.eclipse.bpmn2.CancelEventDefinition;
@@ -44,6 +45,7 @@ import org.eclipse.bpmn2.TerminateEventDefinition;
 import org.eclipse.bpmn2.Transaction;
 import org.eclipse.bpmn2.di.BPMNShape;
 import org.eclipse.bpmn2.modeler.core.Activator;
+import org.eclipse.bpmn2.modeler.core.preferences.ShapeStyle.RoutingStyle;
 import org.eclipse.bpmn2.modeler.core.runtime.ModelEnablementDescriptor;
 import org.eclipse.bpmn2.modeler.core.runtime.TargetRuntime;
 import org.eclipse.bpmn2.modeler.core.utils.ModelUtil;
@@ -67,6 +69,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChange
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -82,6 +85,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.navigator.ResourceNavigator;
+import org.foxbpm.bpmn.designer.base.utils.StyleConfigUtil;
+import org.foxbpm.model.config.style.Style;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
@@ -404,7 +409,6 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 				return projectPreferences.nodeExists(key);
 			}
 			catch (BackingStoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -531,16 +535,46 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 		}
 	}
 	
+	/**
+	 * 获取对应的shapeStyle
+	 * 
+	 * @param clazz
+	 * @return
+	 */
 	public ShapeStyle getShapeStyle(Class clazz) {
-		ShapeStyle ss = shapeStyles.get(clazz);
-		if (ss==null) {
-			String key = getShapeStyleKey(getRuntime(), clazz);
-			String value = get(key, ""); //$NON-NLS-1$
-			ss = ShapeStyle.decode(value);
-			shapeStyles.put(clazz, ss);
-		}
+		ShapeStyle ss = loadShapeStyles().get(clazz);
 		return ss;
 	}
+	
+	/**
+	 * 返回该主题下所有的shapeStyle
+	 * 
+	 * @return
+	 */
+	public HashMap<Class, ShapeStyle> loadShapeStyles() {
+		Map<Class, ShapeStyle> map = new HashMap<Class, ShapeStyle>();
+		for (Style style : StyleConfigUtil.getCurrentStyle().getStyle()) {
+			EClass eclass = (EClass) Bpmn2Package.eINSTANCE.getEClassifier(style.getObject());
+			ShapeStyle ss = new ShapeStyle(style.getForeground(), style.getBackground(), style.getTextColor(), style.getFont());
+			if(enableConnectionRouting) {
+				ss.setRoutingStyle(RoutingStyle.Manhattan);
+			}
+			
+			map.put(eclass.getInstanceClass(), ss);
+		}
+		return (HashMap<Class, ShapeStyle>) map;
+	}
+	
+//	public ShapeStyle getShapeStyle(Class clazz) {
+//		ShapeStyle ss = shapeStyles.get(clazz);
+//		if (ss==null) {
+//			String key = getShapeStyleKey(getRuntime(), clazz);
+//			String value = get(key, ""); //$NON-NLS-1$
+//			ss = ShapeStyle.decode(value);
+//			shapeStyles.put(clazz, ss);
+//		}
+//		return ss;
+//	}
 	
 	public void setShapeStyle(Class clazz, ShapeStyle style) {
 		if (style.isDirty()) {
@@ -618,7 +652,6 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 				firePreferenceEvent(prefs, path, null, profile);
 			}
 			catch (BackingStoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -1286,7 +1319,6 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 			}
 		}
 		catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -1458,7 +1490,6 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 				}
 			}
 			catch (BackingStoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -1511,7 +1542,6 @@ public class Bpmn2Preferences implements IResourceChangeListener, IPropertyChang
 				}
 			}
 			catch (BackingStoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return false;
