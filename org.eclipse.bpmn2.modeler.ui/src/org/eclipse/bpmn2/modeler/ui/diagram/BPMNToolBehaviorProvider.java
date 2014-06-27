@@ -12,14 +12,23 @@
  ******************************************************************************/
 package org.eclipse.bpmn2.modeler.ui.diagram;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.wsdl.Definition;
+
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.Definitions;
+import org.eclipse.bpmn2.DocumentRoot;
 import org.eclipse.bpmn2.Group;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeaturePart;
+import org.eclipse.bpmn2.modeler.core.features.FoxBPMCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2AddFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2CreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.ShowPropertiesFeature;
@@ -48,11 +57,13 @@ import org.eclipse.bpmn2.modeler.ui.editor.BPMN2Editor;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomConnectionFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomElementFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomShapeFeatureContainer;
+import org.eclipse.bpmn2.modeler.ui.features.activity.task.FoxBPMElemetFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographySelectionBehavior;
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographyUtil;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gef.Tool;
 import org.eclipse.gef.palette.PaletteDrawer;
@@ -108,10 +119,16 @@ import org.eclipse.graphiti.tb.IDecorator;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
 import org.eclipse.graphiti.ui.editor.DiagramBehavior;
+import org.eclipse.graphiti.ui.internal.platform.ExtensionManager;
+import org.eclipse.graphiti.ui.platform.IImageProvider;
+import org.eclipse.graphiti.ui.services.GraphitiUi;
 import org.eclipse.graphiti.util.ILocationInfo;
 import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
+import org.foxbpm.bpmn.designer.base.utils.EMFUtil;
+import org.foxbpm.bpmn.designer.base.utils.FoxBPMDesignerUtil;
+import org.foxbpm.bpmn.designer.base.utils.PropertiesUtil;
 
 public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implements IFeatureCheckerHolder {
 
@@ -303,6 +320,19 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 		createDataCompartments(palette);
 		createOtherCompartments(palette);
 		createCustomTasks(palette);
+		ImageProvider imageProvider = null;
+		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
+		for (IImageProvider iImageProvider : imageProviders) {
+			if(iImageProvider.getProviderId().equals("org.eclipse.bpmn2.modeler.ui.ImageProvider")) {
+				imageProvider = (ImageProvider) iImageProvider;
+			}
+		}
+		
+		if(imageProvider!=null) {
+			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
+		}
+		
+		createFoxBPMEntry(palette);
 	}
 	
 	public List<IToolEntry> getTools() {
@@ -560,7 +590,81 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			Activator.logError(ex);
 		}
 	}
+	
+	private void createFoxBPMEntry(List<IPaletteCompartmentEntry> ret) {
+		getFoxBPMToolPaletteCategories(new File(FoxBPMDesignerUtil.getNodeTempletePath()));
+	}
 
+	private void getFoxBPMToolPaletteCategories(File directory) {
+		for (File file : directory.listFiles()) {
+			if(file.isDirectory()) {
+				getFoxBPMToolPaletteCategories(file);
+			}else {
+				if(file.getName().equals("category.properties")) {
+					String id = null;
+					String name = null;
+					try {
+						id = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("id").toString().getBytes("ISO8859-1"), "UTF-8");
+						name = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("name").toString().getBytes("ISO8859-1"), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					
+					String icon = "category.png";
+					
+					PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry(name, icon);
+
+					String catePath = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(file.separator));
+					
+					//递归找该目录下的tool
+					getFoxBPMToolPaletteEntry(new File(catePath), compartmentEntry);
+					
+					if (compartmentEntry.getToolEntries().size()>0)
+						palette.add(compartmentEntry);
+				}
+			}
+		}
+	}
+	
+	private void getFoxBPMToolPaletteEntry(File directory, PaletteCompartmentEntry pc) {
+		for (File file : directory.listFiles()) {
+			if(file.isDirectory()) {
+				getFoxBPMToolPaletteEntry(file, pc);
+			}else {
+				if(file.getName().indexOf(".properties")!=-1 && !file.getName().equals("category.properties")) {
+					String id = null;
+					String name = null;
+					String description = null;
+					try {
+						id = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("id").toString().getBytes("ISO8859-1"), "UTF-8");
+						name = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("name").toString().getBytes("ISO8859-1"), "UTF-8");
+						description = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("description").toString().getBytes("ISO8859-1"), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					
+					String icon = file.getName().substring(0, file.getName().lastIndexOf(".")) + ".png";
+					String bpmnFile = file.getParentFile().toString() + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + ".bpmn";
+					
+					try {
+						((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().load(null);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					Resource resource = EMFUtil.readEMFFile(bpmnFile);
+					Definitions definitions = ((DocumentRoot)((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().getContents().get(0)).getDefinitions();
+					FoxBPMCreateFeature foxBPMCreateFeature = new FoxBPMCreateFeature(featureProvider, resource, definitions);
+					
+					ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(name,
+							description, icon, icon, foxBPMCreateFeature);
+					pc.addToolEntry(objectCreationToolEntry);
+					
+				}
+			}
+		}
+	}
+	
 	@Override
 	public IFeatureChecker getFeatureChecker() {
 		return new FeatureCheckerAdapter(false) {
@@ -874,5 +978,9 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	@Override
 	public Object getToolTip(GraphicsAlgorithm ga) {
 		return FeatureSupport.getToolTip(ga);
+	}
+	
+	private void getEntriesIntoCate(List<Class> neededEntries, PaletteCompartmentEntry compartmentEntry) {
+		
 	}
 }

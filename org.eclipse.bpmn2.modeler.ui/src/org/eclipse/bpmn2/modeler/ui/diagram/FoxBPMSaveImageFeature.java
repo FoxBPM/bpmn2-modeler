@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import org.eclipse.bpmn2.modeler.ui.editor.BPMN2Editor;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.SWTGraphics;
@@ -22,6 +23,7 @@ import org.eclipse.gef.editparts.LayerManager;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ISaveImageContext;
 import org.eclipse.graphiti.internal.util.T;
+import org.eclipse.graphiti.mm.pictograms.Diagram;
 import org.eclipse.graphiti.ui.features.DefaultSaveImageFeature;
 import org.eclipse.graphiti.ui.internal.services.GraphitiUiInternal;
 import org.eclipse.graphiti.ui.saveasimage.ISaveAsImageConfiguration;
@@ -59,13 +61,9 @@ public class FoxBPMSaveImageFeature extends DefaultSaveImageFeature {
                 GraphicalViewer viewer = getGraphicalViewer(context);
 
                 // Select filename with file-dialog
-//                String filePath = FixFlowConfigUtil.getFixflowDiagramPath() + languageType + "/" + processKey + "/";
-              String filePath = "";
-                File file = new File(filePath);
-                        if(!file.exists()) {
-                                file.mkdirs();
-                        }
-                filename = filePath + dbIdString + ".PNG";
+                String name = ((Diagram) viewer.getContents().getModel()).getName();
+                String bpmnFilePath = ((BPMN2Editor)getDiagramEditor()).getModelFile().getLocationURI().getPath();
+                filename = bpmnFilePath.substring(0, bpmnFilePath.lastIndexOf("/")+1) + name + dbIdString + ".png";
                 
                 // Configure and open dialog
                 ISaveAsImageConfiguration saveAsImageConfiguration = getSaveAsImageConfiguration(viewer);
@@ -146,7 +144,6 @@ public class FoxBPMSaveImageFeature extends DefaultSaveImageFeature {
                         public void run(IProgressMonitor monitor) throws InvocationTargetException {
                                 FileOutputStream outputStream = null;
                                 try {
-                                        System.out.println(filename);
                                         outputStream = new FileOutputStream(filename);
                                         outputStream.write(imageBytes);
                                 } catch (Exception e) {

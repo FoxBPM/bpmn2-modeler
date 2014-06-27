@@ -12,6 +12,8 @@
  ******************************************************************************/
 package org.eclipse.bpmn2.modeler.ui;
 
+import java.io.File;
+
 import org.eclipse.bpmn2.AdHocSubProcess;
 import org.eclipse.bpmn2.Association;
 import org.eclipse.bpmn2.BoundaryEvent;
@@ -162,6 +164,8 @@ public class ImageProvider extends AbstractImageProvider {
 
 	public static final String IMG_16_MORPH = PREFIX + "morph" + dot16; //$NON-NLS-1$
 
+	private String templatePath = null;
+	
 	@Override
 	protected void addAvailableImages() {
 		addImageFilePath(IMG_16_START_EVENT, ICONS_16 + "StartEvent.png"); //$NON-NLS-1$
@@ -235,4 +239,22 @@ public class ImageProvider extends AbstractImageProvider {
 		addImageFilePath(IMG_16_MORPH, ICONS_16 + "morph.png"); //$NON-NLS-1$
 	}
 
+	public void setTemplatePath(String templatePath) {
+		this.templatePath = templatePath;
+		if(templatePath!=null && !templatePath.equals("")) {
+			getImagesFromTemplatePath(new File(templatePath));
+		}
+	}
+
+	private void getImagesFromTemplatePath(File directory){
+		for (File file : directory.listFiles()) {
+			if(file.isDirectory()) {
+				getImagesFromTemplatePath(file);
+			}else {
+				if(file.getName().indexOf(".png")!=-1) {
+					addImageFilePath(file.getName(), file.getAbsolutePath());
+				}
+			}
+		}
+	}
 }
