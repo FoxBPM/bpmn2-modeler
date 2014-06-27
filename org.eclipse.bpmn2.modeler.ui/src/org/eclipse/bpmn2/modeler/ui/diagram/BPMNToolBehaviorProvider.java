@@ -328,7 +328,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			}
 		}
 		
-		if(imageProvider!=null) {
+		if(imageProvider!=null && new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists()) {
 			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
 		}
 		
@@ -592,7 +592,8 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	}
 	
 	private void createFoxBPMEntry(List<IPaletteCompartmentEntry> ret) {
-		getFoxBPMToolPaletteCategories(new File(FoxBPMDesignerUtil.getNodeTempletePath()));
+		if(new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists())
+			getFoxBPMToolPaletteCategories(new File(FoxBPMDesignerUtil.getNodeTempletePath()));
 	}
 
 	private void getFoxBPMToolPaletteCategories(File directory) {
