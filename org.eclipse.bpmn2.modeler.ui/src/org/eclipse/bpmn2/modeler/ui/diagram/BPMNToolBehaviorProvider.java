@@ -20,8 +20,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
-import javax.wsdl.Definition;
-
 import org.eclipse.bpmn2.BaseElement;
 import org.eclipse.bpmn2.Definitions;
 import org.eclipse.bpmn2.DocumentRoot;
@@ -57,7 +55,6 @@ import org.eclipse.bpmn2.modeler.ui.editor.BPMN2Editor;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomConnectionFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomElementFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomShapeFeatureContainer;
-import org.eclipse.bpmn2.modeler.ui.features.activity.task.FoxBPMElemetFeatureContainer;
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographySelectionBehavior;
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographyUtil;
 import org.eclipse.core.runtime.IStatus;
@@ -82,7 +79,6 @@ import org.eclipse.graphiti.features.IFeatureCheckerHolder;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.IContext;
 import org.eclipse.graphiti.features.context.IDoubleClickContext;
-import org.eclipse.graphiti.features.context.IMoveShapeContext;
 import org.eclipse.graphiti.features.context.IPictogramElementContext;
 import org.eclipse.graphiti.features.context.impl.AddBendpointContext;
 import org.eclipse.graphiti.features.context.impl.AddContext;
@@ -93,7 +89,6 @@ import org.eclipse.graphiti.features.context.impl.MoveBendpointContext;
 import org.eclipse.graphiti.features.context.impl.MoveShapeContext;
 import org.eclipse.graphiti.features.context.impl.UpdateContext;
 import org.eclipse.graphiti.features.custom.ICustomFeature;
-import org.eclipse.graphiti.mm.Property;
 import org.eclipse.graphiti.mm.algorithms.AbstractText;
 import org.eclipse.graphiti.mm.algorithms.GraphicsAlgorithm;
 import org.eclipse.graphiti.mm.algorithms.Polyline;
@@ -121,7 +116,6 @@ import org.eclipse.graphiti.tb.ImageDecorator;
 import org.eclipse.graphiti.ui.editor.DiagramBehavior;
 import org.eclipse.graphiti.ui.internal.platform.ExtensionManager;
 import org.eclipse.graphiti.ui.platform.IImageProvider;
-import org.eclipse.graphiti.ui.services.GraphitiUi;
 import org.eclipse.graphiti.util.ILocationInfo;
 import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -320,17 +314,17 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 		createDataCompartments(palette);
 		createOtherCompartments(palette);
 		createCustomTasks(palette);
-		ImageProvider imageProvider = null;
-		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
-		for (IImageProvider iImageProvider : imageProviders) {
-			if(iImageProvider.getProviderId().equals("org.eclipse.bpmn2.modeler.ui.ImageProvider")) {
-				imageProvider = (ImageProvider) iImageProvider;
-			}
-		}
-		
-		if(imageProvider!=null && new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists()) {
-			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
-		}
+//		ImageProvider imageProvider = null;
+//		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
+//		for (IImageProvider iImageProvider : imageProviders) {
+//			if(iImageProvider.getProviderId().equals("org.eclipse.bpmn2.modeler.ui.ImageProvider")) {
+//				imageProvider = (ImageProvider) iImageProvider;
+//			}
+//		}
+//		
+//		if(imageProvider!=null && new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists()) {
+//			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
+//		}
 		
 		createFoxBPMEntry(palette);
 	}
@@ -613,7 +607,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					
 					String icon = "category.png";
 					
-					PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry(name, icon);
+					PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry(name, null);
 
 					String catePath = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(file.separator));
 					
@@ -658,7 +652,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					FoxBPMCreateFeature foxBPMCreateFeature = new FoxBPMCreateFeature(featureProvider, resource, definitions);
 					
 					ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(name,
-							description, icon, icon, foxBPMCreateFeature);
+							description, null, null, foxBPMCreateFeature);
 					pc.addToolEntry(objectCreationToolEntry);
 					
 				}
