@@ -307,13 +307,13 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	
 	private void createDefaultpalette() {
 		createConnectors(palette);
-		createTasksCompartments(palette);
-		createGatewaysCompartments(palette);
-		createEventsCompartments(palette);
-		createEventDefinitionsCompartments(palette);
-		createDataCompartments(palette);
-		createOtherCompartments(palette);
-		createCustomTasks(palette);
+//		createTasksCompartments(palette);
+//		createGatewaysCompartments(palette);
+//		createEventsCompartments(palette);
+//		createEventDefinitionsCompartments(palette);
+//		createDataCompartments(palette);
+//		createOtherCompartments(palette);
+//		createCustomTasks(palette);
 //		ImageProvider imageProvider = null;
 //		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
 //		for (IImageProvider iImageProvider : imageProviders) {
