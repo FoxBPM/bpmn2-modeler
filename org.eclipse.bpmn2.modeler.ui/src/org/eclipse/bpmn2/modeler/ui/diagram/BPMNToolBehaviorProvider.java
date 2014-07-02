@@ -121,6 +121,7 @@ import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.foxbpm.bpmn.designer.base.utils.EMFUtil;
+import org.foxbpm.bpmn.designer.base.utils.FlowModelUtils;
 import org.foxbpm.bpmn.designer.base.utils.FoxBPMDesignerUtil;
 import org.foxbpm.bpmn.designer.base.utils.PropertiesUtil;
 
@@ -306,13 +307,14 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	}
 	
 	private void createDefaultpalette() {
+		createFoxBPMEntry(palette);
 		createConnectors(palette);
-//		createTasksCompartments(palette);
-//		createGatewaysCompartments(palette);
-//		createEventsCompartments(palette);
+		createTasksCompartments(palette);
+		createGatewaysCompartments(palette);
+		createEventsCompartments(palette);
 //		createEventDefinitionsCompartments(palette);
 //		createDataCompartments(palette);
-//		createOtherCompartments(palette);
+		createOtherCompartments(palette);
 //		createCustomTasks(palette);
 //		ImageProvider imageProvider = null;
 //		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
@@ -326,7 +328,6 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 //			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
 //		}
 		
-		createFoxBPMEntry(palette);
 	}
 	
 	public List<IToolEntry> getTools() {
@@ -493,7 +494,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			if (feature instanceof ICreateFeature) {
 				ICreateFeature cf = (ICreateFeature)feature;
 				ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(cf.getCreateName(),
-					cf.getCreateDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
+					cf.getDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
 				compartmentEntry.addToolEntry(objectCreationToolEntry);
 			}
 			else if (feature instanceof ICreateConnectionFeature) {
@@ -648,12 +649,15 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}
 					
 					Resource resource = EMFUtil.readEMFFile(bpmnFile);
+					
+					FlowModelUtils.MAP.put(id, resource);
+					
 					Definitions definitions = ((DocumentRoot)((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().getContents().get(0)).getDefinitions();
 					FoxBPMCreateFeature foxBPMCreateFeature = new FoxBPMCreateFeature(featureProvider, resource, definitions);
 					
-					ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(name,
-							description, null, null, foxBPMCreateFeature);
-					pc.addToolEntry(objectCreationToolEntry);
+//					ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(name,
+//							description, null, null, foxBPMCreateFeature);
+//					pc.addToolEntry(objectCreationToolEntry);
 					
 				}
 			}
