@@ -12,16 +12,37 @@
  ******************************************************************************/
 package org.eclipse.bpmn2.modeler.ui.diagram;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.Definitions;
+import org.eclipse.bpmn2.DocumentRoot;
+import org.eclipse.bpmn2.EndEvent;
+import org.eclipse.bpmn2.ExclusiveGateway;
 import org.eclipse.bpmn2.Group;
+import org.eclipse.bpmn2.InclusiveGateway;
+import org.eclipse.bpmn2.Lane;
+import org.eclipse.bpmn2.ManualTask;
+import org.eclipse.bpmn2.ParallelGateway;
+import org.eclipse.bpmn2.ScriptTask;
+import org.eclipse.bpmn2.StartEvent;
+import org.eclipse.bpmn2.TerminateEventDefinition;
+import org.eclipse.bpmn2.TextAnnotation;
+import org.eclipse.bpmn2.TimerEventDefinition;
+import org.eclipse.bpmn2.UserTask;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeaturePart;
+import org.eclipse.bpmn2.modeler.core.features.FoxBPMCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2AddFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2CreateFeature;
+import org.eclipse.bpmn2.modeler.core.features.IFeatureContainer;
 import org.eclipse.bpmn2.modeler.core.features.ShowPropertiesFeature;
 import org.eclipse.bpmn2.modeler.core.features.activity.ActivitySelectionBehavior;
 import org.eclipse.bpmn2.modeler.core.features.command.CustomKeyCommandFeature;
@@ -51,8 +72,10 @@ import org.eclipse.bpmn2.modeler.ui.features.activity.task.CustomShapeFeatureCon
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographySelectionBehavior;
 import org.eclipse.bpmn2.modeler.ui.features.choreography.ChoreographyUtil;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gef.Tool;
 import org.eclipse.gef.palette.PaletteDrawer;
@@ -71,7 +94,6 @@ import org.eclipse.graphiti.features.IFeatureCheckerHolder;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.IContext;
 import org.eclipse.graphiti.features.context.IDoubleClickContext;
-import org.eclipse.graphiti.features.context.IMoveShapeContext;
 import org.eclipse.graphiti.features.context.IPictogramElementContext;
 import org.eclipse.graphiti.features.context.impl.AddBendpointContext;
 import org.eclipse.graphiti.features.context.impl.AddContext;
@@ -82,7 +104,6 @@ import org.eclipse.graphiti.features.context.impl.MoveBendpointContext;
 import org.eclipse.graphiti.features.context.impl.MoveShapeContext;
 import org.eclipse.graphiti.features.context.impl.UpdateContext;
 import org.eclipse.graphiti.features.custom.ICustomFeature;
-import org.eclipse.graphiti.mm.Property;
 import org.eclipse.graphiti.mm.algorithms.AbstractText;
 import org.eclipse.graphiti.mm.algorithms.GraphicsAlgorithm;
 import org.eclipse.graphiti.mm.algorithms.Polyline;
@@ -108,10 +129,17 @@ import org.eclipse.graphiti.tb.IDecorator;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
 import org.eclipse.graphiti.ui.editor.DiagramBehavior;
+import org.eclipse.graphiti.ui.internal.platform.ExtensionManager;
+import org.eclipse.graphiti.ui.platform.IImageProvider;
 import org.eclipse.graphiti.util.ILocationInfo;
 import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
+import org.foxbpm.bpmn.designer.base.utils.EMFUtil;
+import org.foxbpm.bpmn.designer.base.utils.FlowModelUtils;
+import org.foxbpm.bpmn.designer.base.utils.FoxBPMDesignerUtil;
+import org.foxbpm.bpmn.designer.base.utils.PropertiesUtil;
+import org.osgi.framework.Bundle;
 
 public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implements IFeatureCheckerHolder {
 
@@ -296,13 +324,26 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	
 	private void createDefaultpalette() {
 		createConnectors(palette);
-		createTasksCompartments(palette);
-		createGatewaysCompartments(palette);
-		createEventsCompartments(palette);
-		createEventDefinitionsCompartments(palette);
-		createDataCompartments(palette);
-		createOtherCompartments(palette);
-		createCustomTasks(palette);
+		createFoxBPMEntry(palette);
+//		createTasksCompartments(palette);
+//		createGatewaysCompartments(palette);
+//		createEventsCompartments(palette);
+//		createEventDefinitionsCompartments(palette);
+//		createDataCompartments(palette);
+//		createOtherCompartments(palette);
+//		createCustomTasks(palette);
+//		ImageProvider imageProvider = null;
+//		HashSet<IImageProvider> imageProviders = (HashSet<IImageProvider>) ExtensionManager.getSingleton().getImageProvidersForDiagramTypeProviderId(getDiagramTypeProvider().getProviderId());
+//		for (IImageProvider iImageProvider : imageProviders) {
+//			if(iImageProvider.getProviderId().equals("org.eclipse.bpmn2.modeler.ui.ImageProvider")) {
+//				imageProvider = (ImageProvider) iImageProvider;
+//			}
+//		}
+//		
+//		if(imageProvider!=null && new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists()) {
+//			imageProvider.setTemplatePath(FoxBPMDesignerUtil.getNodeTempletePath());
+//		}
+		
 	}
 	
 	public List<IToolEntry> getTools() {
@@ -443,7 +484,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	}
 
 	private void createConnectors(List<IPaletteCompartmentEntry> palette) {
-		PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry(Messages.BPMNToolBehaviorProvider_Connectors_Drawer_Label, null);
+		PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry("连接", null);
 
 		createEntries(FeatureMap.CONNECTORS, compartmentEntry);
 
@@ -469,7 +510,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			if (feature instanceof ICreateFeature) {
 				ICreateFeature cf = (ICreateFeature)feature;
 				ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(cf.getCreateName(),
-					cf.getCreateDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
+					cf.getDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
 				compartmentEntry.addToolEntry(objectCreationToolEntry);
 			}
 			else if (feature instanceof ICreateConnectionFeature) {
@@ -560,7 +601,204 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 			Activator.logError(ex);
 		}
 	}
+	
+	private void createFoxBPMEntry(List<IPaletteCompartmentEntry> ret) {
+		if(new File(FoxBPMDesignerUtil.getNodeTempletePath()).exists())
+			getFoxBPMToolPaletteCategories(new File(FoxBPMDesignerUtil.getNodeTempletePath()));
+	}
 
+	private void getFoxBPMToolPaletteCategories(File directory) {
+		for (File file : directory.listFiles()) {
+			if(file.isDirectory()) {
+				getFoxBPMToolPaletteCategories(file);
+			}else {
+				if(file.getName().equals("category.properties")) {
+					String id = null;
+					String name = null;
+					try {
+						id = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("id").toString().getBytes("ISO8859-1"), "UTF-8");
+						name = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("name").toString().getBytes("ISO8859-1"), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					
+					String icon = "category.png";
+					
+					PaletteCompartmentEntry compartmentEntry = new PaletteCompartmentEntry(name, null);
+
+					String catePath = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(file.separator));
+					
+					//递归找该目录下的tool
+					getFoxBPMToolPaletteEntry(new File(catePath), compartmentEntry);
+					
+					if (compartmentEntry.getToolEntries().size()>0)
+						palette.add(compartmentEntry);
+				}
+			}
+		}
+	}
+	
+	private void getFoxBPMToolPaletteEntry(File directory, PaletteCompartmentEntry pc) {
+		for (File file : directory.listFiles()) {
+			if(file.isDirectory()) {
+				getFoxBPMToolPaletteEntry(file, pc);
+			}else {
+				if(file.getName().indexOf(".properties")!=-1 && !file.getName().equals("category.properties")) {
+					String id = null;
+					String name = null;
+					String description = null;
+					try {
+						id = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("id").toString().getBytes("ISO8859-1"), "UTF-8");
+						name = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("name").toString().getBytes("ISO8859-1"), "UTF-8");
+						description = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("description").toString().getBytes("ISO8859-1"), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					
+					String icon = file.getName().substring(0, file.getName().lastIndexOf(".")) + ".png";
+					String bpmnFile = file.getParentFile().toString() + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + ".bpmn";
+					
+					try {
+						((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().load(null);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					Resource resource = EMFUtil.readEMFFile(bpmnFile);
+					
+//					FlowModelUtils.MAP.put(id, resource);
+					
+					Bundle bundle = Platform.getBundle("org.foxbpm.bpmn.designer.ui");
+					Class<?> theClass = null;
+					Constructor ctor = null;
+					Class[] paramTypes = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+					Object[] params = { featureProvider, resource, name, description};  
+					ICreateFeature feature = null;
+					
+					if(EMFUtil.getAll(resource, ScriptTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMScriptTaskFeatureContainer$CreateScriptTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, UserTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMUserTaskFeatureContainer$CreateUserTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartEventFeatureContainer$CreateStartEventFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, EndEvent.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMEndEventFeatureContainer$CreateEndEventFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, InclusiveGateway.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.gateway.FoxBPMInclusiveGatewayFeatureContainer$CreateInclusiveGatewayFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, ExclusiveGateway.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.gateway.FoxBPMExclusiveGatewayFeatureContainer$CreateExclusiveGatewayFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, ParallelGateway.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.gateway.FoxBPMParallelGatewayFeatureContainer$CreateParallelGatewayFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, Lane.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.lane.FoxBPMCreateLaneFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, TerminateEventDefinition.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMTerminateEventDefinitionFeatureContainer");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, ManualTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMManualTaskFeatureContainer$CreateManualTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, Group.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMGroupFeatureContainer$CreateGroupFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, TextAnnotation.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMTextAnnotationFeatureContainer$CreateTextAnnotationFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					if(feature!=null) {
+						ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(feature.getCreateName(),
+								feature.getDescription(), feature.getCreateImageId(), feature.getCreateLargeImageId(), feature);
+						pc.addToolEntry(objectCreationToolEntry);
+					}
+						
+//					Definitions definitions = ((DocumentRoot)((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().getContents().get(0)).getDefinitions();
+//					FoxBPMCreateFeature foxBPMCreateFeature = new FoxBPMCreateFeature(featureProvider, resource, definitions);
+					
+//					ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(name,
+//							description, null, null, foxBPMCreateFeature);
+//					pc.addToolEntry(objectCreationToolEntry);
+					
+				}
+			}
+		}
+	}
+	
 	@Override
 	public IFeatureChecker getFeatureChecker() {
 		return new FeatureCheckerAdapter(false) {
@@ -874,5 +1112,9 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 	@Override
 	public Object getToolTip(GraphicsAlgorithm ga) {
 		return FeatureSupport.getToolTip(ga);
+	}
+	
+	private void getEntriesIntoCate(List<Class> neededEntries, PaletteCompartmentEntry compartmentEntry) {
+		
 	}
 }
