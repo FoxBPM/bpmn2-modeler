@@ -237,6 +237,9 @@ public class ImageProvider extends AbstractImageProvider {
 		addImageFilePath(IMG_16_PULLUP, ICONS_16 + "pullup.png"); //$NON-NLS-1$
 
 		addImageFilePath(IMG_16_MORPH, ICONS_16 + "morph.png"); //$NON-NLS-1$
+		
+		addImageFilePath("terminateendevent16", ICONS_16 + "TerminateEndEvent.png");
+		addImageFilePath("timerstartevent16", ICONS_16 + "TimerStartEvent.png");
 	}
 
 	public void setTemplatePath(String templatePath) {

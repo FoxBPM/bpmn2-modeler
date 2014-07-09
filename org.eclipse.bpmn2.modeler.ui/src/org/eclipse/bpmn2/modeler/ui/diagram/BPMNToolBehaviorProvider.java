@@ -691,7 +691,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0) {
+					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()<1) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartEventFeatureContainer$CreateStartEventFeature");
 							ctor = theClass.getConstructor(paramTypes);
@@ -699,7 +699,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					}else if(EMFUtil.getAll(resource, EndEvent.class).size()>0) {
+					}else if(EMFUtil.getAll(resource, EndEvent.class).size()>0 && EMFUtil.getAll(resource, TerminateEventDefinition.class).size()<1) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMEndEventFeatureContainer$CreateEndEventFeature");
 							ctor = theClass.getConstructor(paramTypes);
@@ -739,19 +739,59 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					}else if(EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
+					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
 						try {
-							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer");
-							ctor = theClass.getConstructor(paramTypes);
-							feature = (ICreateFeature) ctor.newInstance(params);
+							Class[] paramTypes1 = {IFeatureProvider.class, ToolDescriptor.class};
+							ToolDescriptor toolDescriptor = new ToolDescriptor(null, name, description, "timerstartevent16");
+							Object[] params1 = { featureProvider, toolDescriptor};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.FoxBPMCompoundCreateFeature");
+							ctor = theClass.getConstructor(paramTypes1);
+							feature = (ICreateFeature) ctor.newInstance(params1);
+							CompoundCreateFeature<IContext> cf = (CompoundCreateFeature<IContext>) feature;
+							
+							Class[] paramTypes2 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params2 = { featureProvider, null, name, description}; 
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartEventFeatureContainer$CreateStartEventFeature");
+							ctor = theClass.getConstructor(paramTypes2);
+							feature = (ICreateFeature) ctor.newInstance(params2);
+							CompoundCreateFeaturePart<IContext> ccf = cf.addChild(feature);
+							
+							Class[] paramTypes3 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params3 = { featureProvider, resource, name, description};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer$CreateTimerEventDefinition");
+							ctor = theClass.getConstructor(paramTypes3);
+							feature = (ICreateFeature) ctor.newInstance(params3);
+							ccf.addChild(feature);
+							
+							feature = cf;
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					}else if(EMFUtil.getAll(resource, TerminateEventDefinition.class).size()>0) {
+					}else if(EMFUtil.getAll(resource, EndEvent.class).size()>0 && EMFUtil.getAll(resource, TerminateEventDefinition.class).size()>0) {
 						try {
-							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMTerminateEventDefinitionFeatureContainer");
-							ctor = theClass.getConstructor(paramTypes);
-							feature = (ICreateFeature) ctor.newInstance(params);
+							Class[] paramTypes1 = {IFeatureProvider.class, ToolDescriptor.class};
+							ToolDescriptor toolDescriptor = new ToolDescriptor(null, name, description, "terminateendevent16");
+							Object[] params1 = { featureProvider, toolDescriptor};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.FoxBPMCompoundCreateFeature");
+							ctor = theClass.getConstructor(paramTypes1);
+							feature = (ICreateFeature) ctor.newInstance(params1);
+							CompoundCreateFeature<IContext> cf = (CompoundCreateFeature<IContext>) feature;
+							
+							Class[] paramTypes2 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params2 = { featureProvider, null, name, description}; 
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMEndEventFeatureContainer$CreateEndEventFeature");
+							ctor = theClass.getConstructor(paramTypes2);
+							feature = (ICreateFeature) ctor.newInstance(params2);
+							CompoundCreateFeaturePart<IContext> ccf = cf.addChild(feature);
+							
+							Class[] paramTypes3 = {IFeatureProvider.class};  
+							Object[] params3 = { featureProvider};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMTerminateEventDefinitionFeatureContainer$CreateTerminateEventDefinition");
+							ctor = theClass.getConstructor(paramTypes3);
+							feature = (ICreateFeature) ctor.newInstance(params3);
+							ccf.addChild(feature);
+							
+							feature = cf;
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -773,7 +813,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						}
 					}else if(EMFUtil.getAll(resource, TextAnnotation.class).size()>0) {
 						try {
-							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMTextAnnotationFeatureContainer$CreateTextAnnotationFeature");
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMCreateTextAnnotationFeature");
 							ctor = theClass.getConstructor(paramTypes);
 							feature = (ICreateFeature) ctor.newInstance(params);
 						} catch (Exception e) {
@@ -782,7 +822,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}
 					
 					if(feature!=null) {
-						ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(feature.getCreateName(),
+						ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(feature.getCreateName()==null?"未命名":feature.getCreateName(),
 								feature.getDescription(), feature.getCreateImageId(), feature.getCreateLargeImageId(), feature);
 						pc.addToolEntry(objectCreationToolEntry);
 					}
