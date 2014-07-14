@@ -124,6 +124,10 @@ public class PropertyTabDescriptorProvider implements ITabDescriptorProvider {
 				if (s.appliesTo(part, selection)) {
 					empty = false;
 				}
+				//如果是定义类型，则不去掉 --wy
+				if(s.getSectionClass().getClass().getSimpleName().contains(("DefinitionPropertySection"))) {
+					empty = false;
+				}
 				if (s.getSectionClass() instanceof AdvancedPropertySection) {
 					advancedPropertyTab = d;
 				}
