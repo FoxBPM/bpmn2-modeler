@@ -22,6 +22,10 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.CallActivity;
+import org.eclipse.bpmn2.DataInput;
+import org.eclipse.bpmn2.DataObject;
+import org.eclipse.bpmn2.DataOutput;
 import org.eclipse.bpmn2.Definitions;
 import org.eclipse.bpmn2.DocumentRoot;
 import org.eclipse.bpmn2.EndEvent;
@@ -33,6 +37,7 @@ import org.eclipse.bpmn2.ManualTask;
 import org.eclipse.bpmn2.ParallelGateway;
 import org.eclipse.bpmn2.ScriptTask;
 import org.eclipse.bpmn2.StartEvent;
+import org.eclipse.bpmn2.SubProcess;
 import org.eclipse.bpmn2.TerminateEventDefinition;
 import org.eclipse.bpmn2.TextAnnotation;
 import org.eclipse.bpmn2.TimerEventDefinition;
@@ -814,6 +819,70 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}else if(EMFUtil.getAll(resource, TextAnnotation.class).size()>0) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMCreateTextAnnotationFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, SubProcess.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMSubProcessFeatureContainer$CreateSubProcessFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataInput.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataInputFeatureContainer$CreateDataInputFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataOutput.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataOutputFeatureContainer$CreateDataOutputFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataObject.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataObjectFeatureContainer$CreateDataObjectFeature");
 							ctor = theClass.getConstructor(paramTypes);
 							feature = (ICreateFeature) ctor.newInstance(params);
 						} catch (Exception e) {
