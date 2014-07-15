@@ -17,17 +17,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.BusinessRuleTask;
 import org.eclipse.bpmn2.CallActivity;
 import org.eclipse.bpmn2.DataInput;
 import org.eclipse.bpmn2.DataObject;
 import org.eclipse.bpmn2.DataOutput;
-import org.eclipse.bpmn2.Definitions;
-import org.eclipse.bpmn2.DocumentRoot;
 import org.eclipse.bpmn2.EndEvent;
 import org.eclipse.bpmn2.ExclusiveGateway;
 import org.eclipse.bpmn2.Group;
@@ -35,19 +33,21 @@ import org.eclipse.bpmn2.InclusiveGateway;
 import org.eclipse.bpmn2.Lane;
 import org.eclipse.bpmn2.ManualTask;
 import org.eclipse.bpmn2.ParallelGateway;
+import org.eclipse.bpmn2.ReceiveTask;
 import org.eclipse.bpmn2.ScriptTask;
+import org.eclipse.bpmn2.SendTask;
+import org.eclipse.bpmn2.ServiceTask;
 import org.eclipse.bpmn2.StartEvent;
 import org.eclipse.bpmn2.SubProcess;
+import org.eclipse.bpmn2.Task;
 import org.eclipse.bpmn2.TerminateEventDefinition;
 import org.eclipse.bpmn2.TextAnnotation;
 import org.eclipse.bpmn2.TimerEventDefinition;
 import org.eclipse.bpmn2.UserTask;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeaturePart;
-import org.eclipse.bpmn2.modeler.core.features.FoxBPMCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2AddFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2CreateFeature;
-import org.eclipse.bpmn2.modeler.core.features.IFeatureContainer;
 import org.eclipse.bpmn2.modeler.core.features.ShowPropertiesFeature;
 import org.eclipse.bpmn2.modeler.core.features.activity.ActivitySelectionBehavior;
 import org.eclipse.bpmn2.modeler.core.features.command.CustomKeyCommandFeature;
@@ -134,14 +134,11 @@ import org.eclipse.graphiti.tb.IDecorator;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
 import org.eclipse.graphiti.ui.editor.DiagramBehavior;
-import org.eclipse.graphiti.ui.internal.platform.ExtensionManager;
-import org.eclipse.graphiti.ui.platform.IImageProvider;
 import org.eclipse.graphiti.util.ILocationInfo;
 import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.foxbpm.bpmn.designer.base.utils.EMFUtil;
-import org.foxbpm.bpmn.designer.base.utils.FlowModelUtils;
 import org.foxbpm.bpmn.designer.base.utils.FoxBPMDesignerUtil;
 import org.foxbpm.bpmn.designer.base.utils.PropertiesUtil;
 import org.osgi.framework.Bundle;
@@ -696,6 +693,38 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+					}else if(EMFUtil.getAll(resource, ServiceTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMServiceTaskFeatureContainer$CreateServiceTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, BusinessRuleTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMBusinessRuleTaskFeatureContainer$CreateBusinessRuleTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, SendTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMSendTaskFeatureContainer$CreateSendTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, ReceiveTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMReceiveTaskFeatureContainer$CreateReceiveTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()<1) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartEventFeatureContainer$CreateStartEventFeature");
@@ -883,6 +912,16 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}else if(EMFUtil.getAll(resource, DataObject.class).size()>0) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataObjectFeatureContainer$CreateDataObjectFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					//task放最后是因为有很多任务继承此
+					else if(EMFUtil.getAll(resource, Task.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMTaskFeatureContainer$CreateTaskFeature");
 							ctor = theClass.getConstructor(paramTypes);
 							feature = (ICreateFeature) ctor.newInstance(params);
 						} catch (Exception e) {
