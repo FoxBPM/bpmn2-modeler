@@ -240,6 +240,7 @@ public class ImageProvider extends AbstractImageProvider {
 		
 		addImageFilePath("terminateendevent16", ICONS_16 + "TerminateEndEvent.png");
 		addImageFilePath("timerstartevent16", ICONS_16 + "TimerStartEvent.png");
+		addImageFilePath("timercatchevent16", ICONS_16 + "TimerCatchEvent.png");
 	}
 
 	public void setTemplatePath(String templatePath) {
