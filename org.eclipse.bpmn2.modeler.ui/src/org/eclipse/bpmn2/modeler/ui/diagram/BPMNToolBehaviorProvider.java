@@ -21,6 +21,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.bpmn2.BaseElement;
+import org.eclipse.bpmn2.BoundaryEvent;
 import org.eclipse.bpmn2.BusinessRuleTask;
 import org.eclipse.bpmn2.CallActivity;
 import org.eclipse.bpmn2.DataInput;
@@ -914,6 +915,34 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataObjectFeatureContainer$CreateDataObjectFeature");
 							ctor = theClass.getConstructor(paramTypes);
 							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, BoundaryEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
+						try {
+							Class[] paramTypes1 = {IFeatureProvider.class, ToolDescriptor.class};
+							ToolDescriptor toolDescriptor = new ToolDescriptor(null, name, description, "terminateendevent16");
+							Object[] params1 = { featureProvider, toolDescriptor};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.FoxBPMCompoundCreateFeature");
+							ctor = theClass.getConstructor(paramTypes1);
+							feature = (ICreateFeature) ctor.newInstance(params1);
+							CompoundCreateFeature<IContext> cf = (CompoundCreateFeature<IContext>) feature;
+							
+							Class[] paramTypes2 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params2 = { featureProvider, null, name, description}; 
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.definitions.FoxBPMCreateBoundaryEventFeature");
+							ctor = theClass.getConstructor(paramTypes2);
+							feature = (ICreateFeature) ctor.newInstance(params2);
+							CompoundCreateFeaturePart<IContext> ccf = cf.addChild(feature);
+							
+							Class[] paramTypes3 = {IFeatureProvider.class};  
+							Object[] params3 = { featureProvider};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer$CreateTimerEventDefinition");
+							ctor = theClass.getConstructor(paramTypes3);
+							feature = (ICreateFeature) ctor.newInstance(params3);
+							ccf.addChild(feature);
+							
+							feature = cf;
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
