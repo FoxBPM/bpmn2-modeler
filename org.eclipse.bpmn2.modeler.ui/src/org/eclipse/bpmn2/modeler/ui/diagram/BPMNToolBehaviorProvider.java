@@ -17,32 +17,39 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.bpmn2.BaseElement;
-import org.eclipse.bpmn2.Definitions;
-import org.eclipse.bpmn2.DocumentRoot;
+import org.eclipse.bpmn2.BoundaryEvent;
+import org.eclipse.bpmn2.BusinessRuleTask;
+import org.eclipse.bpmn2.CallActivity;
+import org.eclipse.bpmn2.DataInput;
+import org.eclipse.bpmn2.DataObject;
+import org.eclipse.bpmn2.DataOutput;
 import org.eclipse.bpmn2.EndEvent;
 import org.eclipse.bpmn2.ExclusiveGateway;
 import org.eclipse.bpmn2.Group;
 import org.eclipse.bpmn2.InclusiveGateway;
+import org.eclipse.bpmn2.IntermediateCatchEvent;
 import org.eclipse.bpmn2.Lane;
 import org.eclipse.bpmn2.ManualTask;
 import org.eclipse.bpmn2.ParallelGateway;
+import org.eclipse.bpmn2.ReceiveTask;
 import org.eclipse.bpmn2.ScriptTask;
+import org.eclipse.bpmn2.SendTask;
+import org.eclipse.bpmn2.ServiceTask;
 import org.eclipse.bpmn2.StartEvent;
+import org.eclipse.bpmn2.SubProcess;
+import org.eclipse.bpmn2.Task;
 import org.eclipse.bpmn2.TerminateEventDefinition;
 import org.eclipse.bpmn2.TextAnnotation;
 import org.eclipse.bpmn2.TimerEventDefinition;
 import org.eclipse.bpmn2.UserTask;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.CompoundCreateFeaturePart;
-import org.eclipse.bpmn2.modeler.core.features.FoxBPMCreateFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2AddFeature;
 import org.eclipse.bpmn2.modeler.core.features.IBpmn2CreateFeature;
-import org.eclipse.bpmn2.modeler.core.features.IFeatureContainer;
 import org.eclipse.bpmn2.modeler.core.features.ShowPropertiesFeature;
 import org.eclipse.bpmn2.modeler.core.features.activity.ActivitySelectionBehavior;
 import org.eclipse.bpmn2.modeler.core.features.command.CustomKeyCommandFeature;
@@ -129,14 +136,11 @@ import org.eclipse.graphiti.tb.IDecorator;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
 import org.eclipse.graphiti.ui.editor.DiagramBehavior;
-import org.eclipse.graphiti.ui.internal.platform.ExtensionManager;
-import org.eclipse.graphiti.ui.platform.IImageProvider;
 import org.eclipse.graphiti.util.ILocationInfo;
 import org.eclipse.graphiti.util.LocationInfo;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.foxbpm.bpmn.designer.base.utils.EMFUtil;
-import org.foxbpm.bpmn.designer.base.utils.FlowModelUtils;
 import org.foxbpm.bpmn.designer.base.utils.FoxBPMDesignerUtil;
 import org.foxbpm.bpmn.designer.base.utils.PropertiesUtil;
 import org.osgi.framework.Bundle;
@@ -691,6 +695,38 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+					}else if(EMFUtil.getAll(resource, ServiceTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMServiceTaskFeatureContainer$CreateServiceTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, BusinessRuleTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMBusinessRuleTaskFeatureContainer$CreateBusinessRuleTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, SendTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMSendTaskFeatureContainer$CreateSendTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, ReceiveTask.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMReceiveTaskFeatureContainer$CreateReceiveTaskFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}else if(EMFUtil.getAll(resource, StartEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()<1) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartEventFeatureContainer$CreateStartEventFeature");
@@ -814,6 +850,136 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}else if(EMFUtil.getAll(resource, TextAnnotation.class).size()>0) {
 						try {
 							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.artifact.FoxBPMCreateTextAnnotationFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, SubProcess.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMSubProcessFeatureContainer$CreateSubProcessFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, CallActivity.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.subprocess.FoxBPMCallActivityFeatureContainer$CreateCallActivityFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataInput.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataInputFeatureContainer$CreateDataInputFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataOutput.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataOutputFeatureContainer$CreateDataOutputFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, DataObject.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.data.FoxBPMDataObjectFeatureContainer$CreateDataObjectFeature");
+							ctor = theClass.getConstructor(paramTypes);
+							feature = (ICreateFeature) ctor.newInstance(params);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, BoundaryEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
+						try {
+							Class[] paramTypes1 = {IFeatureProvider.class, ToolDescriptor.class};
+							ToolDescriptor toolDescriptor = new ToolDescriptor(null, name, description, "timercatchevent16");
+							Object[] params1 = { featureProvider, toolDescriptor};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.FoxBPMCompoundCreateFeature");
+							ctor = theClass.getConstructor(paramTypes1);
+							feature = (ICreateFeature) ctor.newInstance(params1);
+							CompoundCreateFeature<IContext> cf = (CompoundCreateFeature<IContext>) feature;
+							
+							Class[] paramTypes2 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params2 = { featureProvider, null, name, description}; 
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.definitions.FoxBPMCreateBoundaryEventFeature");
+							ctor = theClass.getConstructor(paramTypes2);
+							feature = (ICreateFeature) ctor.newInstance(params2);
+							CompoundCreateFeaturePart<IContext> ccf = cf.addChild(feature);
+							
+							Class[] paramTypes3 = {IFeatureProvider.class};  
+							Object[] params3 = { featureProvider};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer$CreateTimerEventDefinition");
+							ctor = theClass.getConstructor(paramTypes3);
+							feature = (ICreateFeature) ctor.newInstance(params3);
+							ccf.addChild(feature);
+							
+							feature = cf;
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else if(EMFUtil.getAll(resource, IntermediateCatchEvent.class).size()>0 && EMFUtil.getAll(resource, TimerEventDefinition.class).size()>0) {
+						try {
+							Class[] paramTypes1 = {IFeatureProvider.class, ToolDescriptor.class};
+							ToolDescriptor toolDescriptor = new ToolDescriptor(null, name, description, "timercatchevent16");
+							Object[] params1 = { featureProvider, toolDescriptor};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.FoxBPMCompoundCreateFeature");
+							ctor = theClass.getConstructor(paramTypes1);
+							feature = (ICreateFeature) ctor.newInstance(params1);
+							CompoundCreateFeature<IContext> cf = (CompoundCreateFeature<IContext>) feature;
+							
+							Class[] paramTypes2 = {IFeatureProvider.class, Resource.class, String.class, String.class};  
+							Object[] params2 = { featureProvider, null, name, description}; 
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMIntermediateCatchEventFeatureContainer$CreateIntermediateCatchEventFeature");
+							ctor = theClass.getConstructor(paramTypes2);
+							feature = (ICreateFeature) ctor.newInstance(params2);
+							CompoundCreateFeaturePart<IContext> ccf = cf.addChild(feature);
+							
+							Class[] paramTypes3 = {IFeatureProvider.class};  
+							Object[] params3 = { featureProvider};  
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.event.FoxBPMStartTimerEventFeatureContainer$CreateTimerEventDefinition");
+							ctor = theClass.getConstructor(paramTypes3);
+							feature = (ICreateFeature) ctor.newInstance(params3);
+							ccf.addChild(feature);
+							
+							feature = cf;
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					//task放最后是因为有很多任务继承此
+					else if(EMFUtil.getAll(resource, Task.class).size()>0) {
+						try {
+							theClass = bundle.loadClass("org.foxbpm.bpmn.designer.ui.features.activity.task.FoxBPMTaskFeatureContainer$CreateTaskFeature");
 							ctor = theClass.getConstructor(paramTypes);
 							feature = (ICreateFeature) ctor.newInstance(params);
 						} catch (Exception e) {
