@@ -17,8 +17,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.bpmn2.BaseElement;
 import org.eclipse.bpmn2.BoundaryEvent;
@@ -632,8 +637,25 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 
 					String catePath = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(file.separator));
 					
+					Map<ICreateFeature, Integer> featureMap = new HashMap<ICreateFeature, Integer>();
 					//递归找该目录下的tool
-					getFoxBPMToolPaletteEntry(new File(catePath), compartmentEntry);
+					getFoxBPMToolPaletteEntry(new File(catePath), compartmentEntry, featureMap);
+					
+					Comparator<Map.Entry<ICreateFeature,Integer>> comparator = new Comparator<Map.Entry<ICreateFeature,Integer>>() {
+						@Override
+						public int compare(Entry<ICreateFeature, Integer> o1, Entry<ICreateFeature, Integer> o2) {
+							return o2.getValue().compareTo(o1.getValue());
+						}
+					};
+					
+					List<Map.Entry<ICreateFeature,Integer>> createFeatures = new ArrayList<Map.Entry<ICreateFeature,Integer>>(featureMap.entrySet());
+					Collections.sort(createFeatures, comparator);
+					for (Entry<ICreateFeature, Integer> entry : createFeatures) {
+						ICreateFeature feature = entry.getKey();
+						ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(feature.getCreateName()==null?"未命名":feature.getCreateName(),
+								feature.getDescription(), feature.getCreateImageId(), feature.getCreateLargeImageId(), feature);
+						compartmentEntry.addToolEntry(objectCreationToolEntry);
+					}
 					
 					if (compartmentEntry.getToolEntries().size()>0)
 						palette.add(compartmentEntry);
@@ -642,19 +664,21 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 		}
 	}
 	
-	private void getFoxBPMToolPaletteEntry(File directory, PaletteCompartmentEntry pc) {
+	private Map<ICreateFeature, Integer> getFoxBPMToolPaletteEntry(File directory, PaletteCompartmentEntry pc, Map<ICreateFeature, Integer> featureMap) {
 		for (File file : directory.listFiles()) {
 			if(file.isDirectory()) {
-				getFoxBPMToolPaletteEntry(file, pc);
+				getFoxBPMToolPaletteEntry(file, pc, featureMap);
 			}else {
 				if(file.getName().indexOf(".properties")!=-1 && !file.getName().equals("category.properties")) {
 					String id = null;
 					String name = null;
 					String description = null;
+					String order = null;
 					try {
 						id = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("id").toString().getBytes("ISO8859-1"), "UTF-8");
 						name = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("name").toString().getBytes("ISO8859-1"), "UTF-8");
 						description = new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("description").toString().getBytes("ISO8859-1"), "UTF-8");
+						order = PropertiesUtil.readProperties(file.getAbsolutePath()).get("order")==null?"0":new String(PropertiesUtil.readProperties(file.getAbsolutePath()).get("order").toString().getBytes("ISO8859-1"), "UTF-8");
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
@@ -988,9 +1012,8 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 					}
 					
 					if(feature!=null) {
-						ObjectCreationToolEntry objectCreationToolEntry = new ObjectCreationToolEntry(feature.getCreateName()==null?"未命名":feature.getCreateName(),
-								feature.getDescription(), feature.getCreateImageId(), feature.getCreateLargeImageId(), feature);
-						pc.addToolEntry(objectCreationToolEntry);
+						featureMap.put(feature, Integer.parseInt(order));
+//						Map<String, Object> map = new HashMap<String, Object>();
 					}
 						
 //					Definitions definitions = ((DocumentRoot)((BPMN2Editor)getDiagramTypeProvider().getDiagramEditor()).getResource().getContents().get(0)).getDefinitions();
@@ -1003,6 +1026,7 @@ public class BPMNToolBehaviorProvider extends DefaultToolBehaviorProvider implem
 				}
 			}
 		}
+		return featureMap;
 	}
 	
 	@Override
